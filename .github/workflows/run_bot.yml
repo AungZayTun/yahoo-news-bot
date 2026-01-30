@@ -1,0 +1,32 @@
+name: Yahoo News Bot Auto-Runner
+
+on:
+  schedule:
+    # ၁၅ မိနစ်တိုင်း Run မယ်
+    - cron: '*/15 * * * *'
+  # ကိုယ်တိုင် ခလုတ်နှိပ်ပြီး စမ်းချင်ရင်လည်း ရအောင်
+  workflow_dispatch:
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install libraries
+        run: |
+          pip install feedparser google-generativeai requests python-dateutil
+
+      - name: Run Python Script
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
+        run: python news_bot.py
