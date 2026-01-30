@@ -12,34 +12,42 @@ CHANNEL_ID = os.environ["CHANNEL_ID"]
 # BBC News URL
 RSS_URL = "http://feeds.bbci.co.uk/news/world/rss.xml"
 
-# 🔥 AI Library မသုံးဘဲ Direct လှမ်းခေါ်မယ့် Function
 def get_ai_summary(title, summary):
-    # Gemini 1.5 Flash ကို တိုက်ရိုက်လှမ်းခေါ်မယ်
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
-    headers = {'Content-Type': 'application/json'}
+    # စမ်းသပ်မည့် Model နာမည်များ (တစ်ခုမရရင် တစ်ခုပြောင်းသုံးမယ်)
+    models_to_try = [
+        "gemini-1.5-flash",
+        "gemini-pro",
+        "gemini-1.0-pro"
+    ]
     
-    prompt = f"""
-    Translate and summarize this news into BURMESE for a Telegram Channel:
-    Title: {title}
-    Summary: {summary}
-    """
-    
-    data = {
-        "contents": [{
-            "parts": [{"text": prompt}]
-        }]
-    }
-    
-    try:
-        response = requests.post(url, headers=headers, json=data)
-        if response.status_code == 200:
-            return response.json()['candidates'][0]['content']['parts'][0]['text']
-        else:
-            print(f"AI Error: {response.text}")
-            return None
-    except Exception as e:
-        print(f"Connection Error: {e}")
-        return None
+    for model_name in models_to_try:
+        print(f"Trying with model: {model_name}...")
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={GEMINI_API_KEY}"
+        headers = {'Content-Type': 'application/json'}
+        
+        prompt = f"""
+        Translate and summarize this news into BURMESE for a Telegram Channel:
+        Title: {title}
+        Summary: {summary}
+        """
+        
+        data = {
+            "contents": [{"parts": [{"text": prompt}]}]
+        }
+        
+        try:
+            response = requests.post(url, headers=headers, json=data)
+            if response.status_code == 200:
+                print(f"✅ Success with {model_name}!")
+                return response.json()['candidates'][0]['content']['parts'][0]['text']
+            else:
+                print(f"❌ Failed with {model_name}: {response.status_code}")
+                # 404 ဆိုရင် နောက် Model တစ်ခုကို ဆက်စမ်းမယ်
+                continue
+        except Exception as e:
+            print(f"Connection Error: {e}")
+            
+    return None
 
 def send_to_telegram(message):
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
@@ -52,7 +60,6 @@ def send_to_telegram(message):
 
 def process_news():
     print("Fetching BBC News... 🌍")
-    
     feed = feedparser.parse(RSS_URL)
     
     if not feed.entries:
@@ -73,9 +80,9 @@ def process_news():
     if ai_result:
         final_msg = f"{ai_result}\n\n🔗 {link}"
         send_to_telegram(final_msg)
-        print("✅ Message Sent Success!")
+        print("🎉 Mission Complete: Message Sent!")
     else:
-        print("❌ AI Failed to generate summary.")
+        print("⚠️ All models failed. Please verify your API Key in Google AI Studio.")
 
 if __name__ == "__main__":
     process_news()
