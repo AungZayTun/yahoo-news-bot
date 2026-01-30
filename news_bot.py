@@ -11,28 +11,38 @@ CHANNEL_ID = os.environ["CHANNEL_ID"]
 
 RSS_URL = "https://www.yahoo.com/news/rss/world"
 
+# 🛑 Yahoo က Block တာ ရှောင်ဖို့ "လူယောင်ဆောင်မယ့်" ခေါင်းစဉ်
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+}
+
 genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel('gemini-1.5-flash')
 
 def send_to_telegram(message):
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
     data = {"chat_id": CHANNEL_ID, "text": message, "parse_mode": "Markdown"}
-    print(f"Sending to Telegram ID: {CHANNEL_ID}...")
     try:
-        response = requests.post(url, data=data)
-        print(f"Telegram Response: {response.text}") # Error ရှိရင် ဒီမှာပေါ်မယ်
+        requests.post(url, data=data)
     except Exception as e:
-        print(f"Telegram Connection Error: {e}")
+        print(f"Telegram Error: {e}")
 
 def process_news():
-    print("Force Checking Yahoo News... 🔍")
-    feed = feedparser.parse(RSS_URL)
+    print("Force Checking Yahoo News (Stealth Mode)... 🕵️")
+    
+    try:
+        # requests နဲ့ အရင်လှမ်းယူမယ် (Block မခံရအောင်)
+        response = requests.get(RSS_URL, headers=HEADERS, timeout=15)
+        feed = feedparser.parse(response.content)
+    except Exception as e:
+        print(f"Connection Error: {e}")
+        return
     
     if not feed.entries:
-        print("RSS Error")
+        print("RSS Error: Still blocked or no internet on server.")
         return
 
-    # ပထမဆုံး ၁ ပုဒ်ကိုပဲ ယူပြီး ချက်ချင်းပို့မယ် (စမ်းသပ်ဖို့)
+    # ပထမဆုံး ၁ ပုဒ်ကိုပဲ ယူပြီး ချက်ချင်းပို့မယ်
     entry = feed.entries[0]
     title = entry.title
     link = entry.link
@@ -41,7 +51,7 @@ def process_news():
     print(f"Testing with: {title}")
 
     prompt = f"""
-    Summarize this news into BURMESE for a Telegram Channel (Breaking News style):
+    Translate and summarize this news into BURMESE for a Telegram Channel:
     Title: {title}
     Summary: {summary}
     """
