@@ -9,11 +9,13 @@ GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 CHANNEL_ID = os.environ["CHANNEL_ID"]
 
-# ✅ Yahoo အစား BBC News (World) ကို ပြောင်းသုံးမယ် (သူက မပိတ်ဘူး)
+# BBC News URL
 RSS_URL = "http://feeds.bbci.co.uk/news/world/rss.xml"
 
 genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel('gemini-1.5-flash')
+
+# 🛑 FIX: "gemini-1.5-flash" အစား "gemini-pro" ကို ပြောင်းသုံးလိုက်တယ် (Error မတက်တော့ဘူး)
+model = genai.GenerativeModel('gemini-pro')
 
 def send_to_telegram(message):
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
@@ -27,14 +29,13 @@ def send_to_telegram(message):
 def process_news():
     print("Fetching BBC News... 🌍")
     
-    # BBC က ရိုးရိုး feedparser နဲ့ တန်းရတယ်
     feed = feedparser.parse(RSS_URL)
     
     if not feed.entries:
         print("RSS Error: Could not fetch news.")
         return
 
-    # ပထမဆုံး ၁ ပုဒ်ကို ယူပြီး ချက်ချင်းပို့မယ် (Test Mode)
+    # ပထမဆုံး ၁ ပုဒ်ကို ယူပြီး ချက်ချင်းပို့မယ်
     entry = feed.entries[0]
     title = entry.title
     link = entry.link
