@@ -20,7 +20,7 @@ def send_to_telegram(message):
     print(f"Sending to Telegram ID: {CHANNEL_ID}...")
     try:
         response = requests.post(url, data=data)
-        print(f"Telegram Response: {response.text}") 
+        print(f"Telegram Response: {response.text}") # Error ရှိရင် ဒီမှာပေါ်မယ်
     except Exception as e:
         print(f"Telegram Connection Error: {e}")
 
@@ -32,7 +32,7 @@ def process_news():
         print("RSS Error")
         return
 
-    # နောက်ဆုံးသတင်း ၁ ပုဒ်ကို ယူမယ် (အချိန်မစစ်တော့ဘူး)
+    # ပထမဆုံး ၁ ပုဒ်ကိုပဲ ယူပြီး ချက်ချင်းပို့မယ် (စမ်းသပ်ဖို့)
     entry = feed.entries[0]
     title = entry.title
     link = entry.link
@@ -41,7 +41,7 @@ def process_news():
     print(f"Testing with: {title}")
 
     prompt = f"""
-    Translate and summarize this news into BURMESE for a Telegram Channel:
+    Summarize this news into BURMESE for a Telegram Channel (Breaking News style):
     Title: {title}
     Summary: {summary}
     """
