@@ -32,7 +32,7 @@ def process_news():
         print("RSS Error")
         return
 
-    # ပထမဆုံး ၁ ပုဒ်ကိုပဲ ယူပြီး ချက်ချင်းပို့မယ် (စမ်းသပ်ဖို့)
+    # နောက်ဆုံးသတင်း ၁ ပုဒ်ကို ယူမယ် (အချိန်မစစ်တော့ဘူး)
     entry = feed.entries[0]
     title = entry.title
     link = entry.link
@@ -41,7 +41,7 @@ def process_news():
     print(f"Testing with: {title}")
 
     prompt = f"""
-    Summarize this news into BURMESE for a Telegram Channel (Breaking News style):
+    Translate and summarize this news into BURMESE for a Telegram Channel:
     Title: {title}
     Summary: {summary}
     """
